@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FlyDreamAir</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box;}
+  :root{
+    --sky:#0a1e3f;--sky-mid:#1a3a5c;--accent:#2563eb;--accent-light:#60a5fa;
+    --white:#ffffff;--muted:rgba(255,255,255,0.6);--card-bg:rgba(255,255,255,0.08);
+    --card-border:rgba(255,255,255,0.15);--radius:14px;
+  }
+  body{background:var(--sky);min-height:100vh;}
+  #app{font-family:'DM Sans',sans-serif;background:var(--sky);color:var(--white);min-height:100vh;position:relative;}
+  nav{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;border-bottom:0.5px solid var(--card-border);position:sticky;top:0;background:var(--sky);z-index:100;}
+  .logo{font-family:'Playfair Display',serif;font-size:20px;color:var(--accent);}
+  .logo span{color:var(--white);}
+  .nav-links{display:flex;gap:4px;}
+  .nav-btn{background:none;border:none;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:12px;padding:6px 13px;border-radius:20px;cursor:pointer;transition:all .2s;}
+  .nav-btn:hover,.nav-btn.active{color:var(--white);background:var(--card-bg);border:0.5px solid var(--card-border);}
+  .nav-btn.gold{background:var(--accent);color:var(--sky);font-weight:500;}
+  .nav-btn.gold:hover{background:var(--accent-light);}
+  .page{display:none;animation:fu .35s ease;}
+  .page.active{display:block;}
+  @keyframes fu{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+  /* HERO */
+  .hero{padding:52px 28px 36px;text-align:center;position:relative;overflow:hidden;}
+  .stars-bg{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;}
+  .h-inner{position:relative;z-index:2;}
+  .tag{font-size:11px;letter-spacing:3px;color:var(--accent);text-transform:uppercase;margin-bottom:14px;font-weight:500;}
+  .hero h1{font-family:'Playfair Display',serif;font-size:44px;line-height:1.15;margin-bottom:12px;}
+  .hero h1 em{color:var(--accent);font-style:italic;}
+  .hero p{color:var(--muted);font-size:14px;max-width:420px;margin:0 auto 32px;line-height:1.7;font-weight:300;}
+
+  /* SEARCH CARD */
+  .sc{background:rgba(255,255,255,0.08);border:0.5px solid var(--card-border);border-radius:var(--radius);padding:22px 26px;max-width:660px;margin:0 auto;}
+  .sc-tabs{display:flex;gap:6px;margin-bottom:18px;}
+  .sc-tab{font-family:'DM Sans',sans-serif;background:none;border:0.5px solid transparent;color:var(--muted);font-size:12px;padding:5px 14px;border-radius:20px;cursor:pointer;transition:all .2s;}
+  .sc-tab.active{color:var(--accent);border-color:var(--accent);background:rgba(232,184,109,0.1);}
+  .sc-row{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin-bottom:12px;}
+  .sf{background:rgba(255,255,255,0.07);border:0.5px solid var(--card-border);border-radius:10px;padding:11px 13px;transition:border-color .2s;}
+  .sf:hover{border-color:rgba(255,255,255,0.25);}
+  .sf label{display:block;font-size:10px;color:var(--accent);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:3px;font-weight:500;}
+  .sf select,.sf input{background:none;border:none;color:var(--white);font-family:'DM Sans',sans-serif;font-size:13px;width:100%;outline:none;}
+  .sf select option{background:#1a2d4a;}
+  .swap{width:34px;height:34px;border-radius:50%;background:rgba(232,184,109,0.15);border:0.5px solid var(--accent);color:var(--accent);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;}
+  .swap:hover{background:rgba(232,184,109,0.3);}
+  .sc-bot{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end;}
+  .srch-btn{background:var(--accent);color:var(--sky);border:none;border-radius:10px;padding:12px 22px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;white-space:nowrap;}
+  .srch-btn:hover{background:var(--accent-light);transform:translateY(-1px);}
+
+  /* RESULTS */
+  .res-hdr{padding:24px 28px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .res-hdr h2{font-family:'Playfair Display',serif;font-size:20px;}
+  .rtag{background:rgba(232,184,109,0.15);border:0.5px solid var(--accent);color:var(--accent);padding:3px 12px;border-radius:20px;font-size:11px;font-weight:500;}
+  .back-btn{margin-left:auto;background:var(--card-bg);border:0.5px solid var(--card-border);color:var(--white);font-family:'DM Sans',sans-serif;font-size:11px;padding:6px 14px;border-radius:8px;cursor:pointer;}
+  .fl-list{padding:0 28px 28px;display:flex;flex-direction:column;gap:10px;}
+  .fc{background:rgba(255,255,255,0.06);border:0.5px solid var(--card-border);border-radius:var(--radius);padding:16px 20px;display:grid;grid-template-columns:1fr auto 1fr auto auto auto;align-items:center;gap:14px;transition:all .2s;cursor:pointer;}
+  .fc:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.22);transform:translateY(-2px);}
+  .fc.bv{border-color:rgba(232,184,109,0.4);}
+  .bb{display:inline-block;background:rgba(232,184,109,0.15);color:var(--accent);font-size:9px;padding:2px 7px;border-radius:8px;margin-bottom:3px;font-weight:500;letter-spacing:.5px;}
+  .t{font-size:20px;font-weight:500;line-height:1.1;}
+  .ap{font-size:11px;color:var(--muted);margin-top:2px;}
+  .fm{text-align:center;}
+  .dur{font-size:10px;color:var(--muted);margin-bottom:3px;}
+  .fline{height:1px;background:linear-gradient(90deg,transparent,var(--card-border),var(--accent),var(--card-border),transparent);position:relative;width:70px;}
+  .fline::before{content:'✈';position:absolute;top:-8px;left:50%;transform:translateX(-50%);font-size:11px;color:var(--accent);}
+  .stl{font-size:10px;color:var(--muted);margin-top:3px;}
+  .ai{font-size:11px;color:var(--muted);text-align:right;}
+  .fn{font-size:12px;font-weight:500;color:var(--white);margin-bottom:1px;}
+  .pr{font-size:20px;font-weight:500;color:var(--accent);}
+  .prs{font-size:10px;color:var(--muted);margin-top:2px;}
+  .sel-btn{background:rgba(232,184,109,0.15);border:0.5px solid var(--accent);color:var(--accent);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;padding:8px 14px;border-radius:8px;cursor:pointer;transition:all .2s;white-space:nowrap;}
+  .sel-btn:hover{background:var(--accent);color:var(--sky);}
+  .cls-badge{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:500;}
+  .cls-E{background:rgba(255,255,255,0.08);color:var(--muted);}
+  .cls-B{background:rgba(232,184,109,0.15);color:var(--accent);}
+  .cls-F{background:rgba(93,202,165,0.15);color:#5dcaa5;}
+
+  /* MY BOOKINGS */
+  .mb-wrap{padding:28px;}
+  .mb-wrap h2{font-family:'Playfair Display',serif;font-size:24px;margin-bottom:6px;}
+  .mb-wrap>p{color:var(--muted);font-size:13px;margin-bottom:22px;}
+  .bk-card{background:var(--card-bg);border:0.5px solid var(--card-border);border-radius:var(--radius);padding:18px 20px;margin-bottom:12px;}
+  .bk-top{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+  .bk-num{font-size:11px;color:var(--accent);font-weight:500;letter-spacing:1px;}
+  .bk-status{font-size:10px;padding:2px 10px;border-radius:10px;font-weight:500;margin-left:auto;}
+  .st-confirmed{background:rgba(93,202,165,0.15);color:#5dcaa5;}
+  .st-checkin{background:rgba(232,184,109,0.15);color:var(--accent);}
+  .st-completed{background:rgba(255,255,255,0.08);color:var(--muted);}
+  .bk-route{display:flex;align-items:center;gap:16px;margin-bottom:12px;}
+  .bk-city{font-size:18px;font-weight:500;}
+  .bk-iata{font-size:11px;color:var(--muted);}
+  .bk-arrow{color:var(--accent);font-size:16px;}
+  .bk-det{display:flex;gap:20px;font-size:12px;color:var(--muted);}
+  .bk-det span b{color:var(--white);font-weight:400;}
+  .bk-actions{display:flex;gap:8px;margin-top:14px;padding-top:14px;border-top:0.5px solid var(--card-border);}
+  .bk-act-btn{font-family:'DM Sans',sans-serif;font-size:11px;padding:6px 14px;border-radius:8px;cursor:pointer;transition:all .2s;font-weight:500;}
+  .bk-primary{background:var(--accent);color:var(--sky);border:none;}
+  .bk-primary:hover{background:var(--accent-light);}
+  .bk-ghost{background:none;border:0.5px solid var(--card-border);color:var(--muted);}
+  .bk-ghost:hover{border-color:rgba(255,255,255,0.3);color:var(--white);}
+
+  /* SEAT MAP */
+  .seat-wrap{padding:28px;max-width:600px;margin:0 auto;}
+  .seat-wrap h2{font-family:'Playfair Display',serif;font-size:22px;margin-bottom:6px;}
+  .seat-wrap>p{color:var(--muted);font-size:13px;margin-bottom:22px;}
+  .seat-legend{display:flex;gap:16px;margin-bottom:18px;font-size:12px;color:var(--muted);}
+  .leg-dot{width:14px;height:14px;border-radius:4px;display:inline-block;margin-right:5px;vertical-align:middle;}
+  .seat-section{margin-bottom:16px;}
+  .seat-section h4{font-size:11px;color:var(--accent);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;font-weight:500;}
+  .seat-row{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+  .row-num{font-size:11px;color:var(--muted);width:20px;text-align:right;}
+  .seat{width:30px;height:30px;border-radius:6px 6px 3px 3px;cursor:pointer;transition:all .2s;border:none;font-size:10px;font-weight:500;}
+  .seat.avail{background:rgba(255,255,255,0.1);color:var(--muted);}
+  .seat.avail:hover{background:rgba(232,184,109,0.3);color:var(--accent);}
+  .seat.taken{background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.15);cursor:not-allowed;}
+  .seat.selected{background:var(--accent);color:var(--sky);}
+  .aisle{width:16px;}
+  .seat-info{margin-top:16px;padding:14px;background:var(--card-bg);border:0.5px solid var(--card-border);border-radius:10px;font-size:13px;}
+  .seat-info span{color:var(--accent);font-weight:500;}
+
+  /* IN-FLIGHT SERVICES */
+  .ifs-wrap{padding:28px;}
+  .ifs-wrap h2{font-family:'Playfair Display',serif;font-size:22px;margin-bottom:6px;}
+  .ifs-wrap>p{color:var(--muted);font-size:13px;margin-bottom:22px;}
+  .ifs-cats{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+  .ifs-cat{font-family:'DM Sans',sans-serif;background:var(--card-bg);border:0.5px solid var(--card-border);color:var(--muted);font-size:12px;padding:6px 16px;border-radius:20px;cursor:pointer;transition:all .2s;}
+  .ifs-cat.active{background:rgba(232,184,109,0.15);border-color:var(--accent);color:var(--accent);}
+  .ifs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+  .ifs-card{background:var(--card-bg);border:0.5px solid var(--card-border);border-radius:var(--radius);padding:16px;transition:all .2s;}
+  .ifs-card:hover{border-color:rgba(255,255,255,0.22);}
+  .ifs-icon{font-size:22px;margin-bottom:10px;}
+  .ifs-card h4{font-size:14px;font-weight:500;margin-bottom:4px;}
+  .ifs-card p{font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:10px;}
+  .ifs-price{font-size:13px;color:var(--accent);font-weight:500;margin-bottom:8px;}
+  .add-btn{font-family:'DM Sans',sans-serif;font-size:11px;padding:5px 14px;border-radius:7px;cursor:pointer;transition:all .2s;font-weight:500;border:0.5px solid var(--accent);background:none;color:var(--accent);}
+  .add-btn:hover,.add-btn.added{background:var(--accent);color:var(--sky);border-color:var(--accent);}
+
+  /* LOGIN PAGE */
+  .login-wrap{padding:52px 28px;max-width:420px;margin:0 auto;text-align:center;}
+  .login-wrap h2{font-family:'Playfair Display',serif;font-size:32px;margin-bottom:6px;}
+  .login-wrap p{color:var(--muted);font-size:13px;margin-bottom:32px;}
+  .login-form{display:flex;flex-direction:column;gap:14px;}
+  .login-field{display:flex;flex-direction:column;text-align:left;gap:6px;}
+  .login-field label{font-size:12px;color:var(--accent);letter-spacing:1px;text-transform:uppercase;font-weight:500;}
+  .login-field input{background:rgba(255,255,255,0.07);border:0.5px solid var(--card-border);border-radius:10px;padding:12px;color:var(--white);font-family:'DM Sans',sans-serif;font-size:13px;transition:border-color .2s;}
+  .login-field input:focus{outline:none;border-color:var(--accent);}
+  .login-field input::placeholder{color:rgba(255,255,255,0.3);}
+  .login-btn{background:var(--accent);color:var(--sky);border:none;border-radius:10px;padding:12px 22px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:all .2s;margin-top:10px;}
+  .login-btn:hover{background:var(--accent-light);transform:translateY(-1px);}
+  .login-error{background:rgba(240,149,149,0.15);border:0.5px solid rgba(240,149,149,0.3);border-radius:8px;color:#f09595;font-size:12px;padding:10px;margin-bottom:14px;display:none;}
+  .login-error.show{display:block;}
+  
+  /* BOOKING CONFIRMATION */
+  .confirm-wrap{padding:52px 28px;max-width:520px;margin:0 auto;text-align:center;}
+  .confirm-icon{font-size:64px;margin-bottom:20px;animation:bounce 1s ease;}
+  @keyframes bounce{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+  .confirm-wrap h2{font-family:'Playfair Display',serif;font-size:28px;margin-bottom:6px;color:var(--accent);}
+  .confirm-wrap p{color:var(--muted);font-size:13px;margin-bottom:28px;line-height:1.6;}
+  .confirm-details{background:var(--card-bg);border:0.5px solid var(--card-border);border-radius:var(--radius);padding:24px;margin-bottom:28px;text-align:left;}
+  .confirm-row{display:flex;justify-content:space-between;font-size:13px;padding:10px 0;border-bottom:0.5px solid var(--card-border);}
+  .confirm-row:last-child{border-bottom:none;}
+  .confirm-row .label{color:var(--muted);font-weight:400;}
+  .confirm-row .value{color:var(--white);font-weight:500;}
+  .confirm-ref{background:rgba(232,184,109,0.15);border:0.5px solid var(--accent);border-radius:8px;padding:14px;margin-bottom:20px;}
+  .confirm-ref .ref-label{font-size:11px;color:var(--muted);margin-bottom:4px;}
+  .confirm-ref .ref-number{font-family:'Playfair Display',serif;font-size:24px;color:var(--accent);}
+  .confirm-actions{display:flex;gap:10px;flex-direction:column;}
+  .confirm-btn-primary{background:var(--accent);color:var(--sky);border:none;border-radius:10px;padding:12px 22px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:all .2s;}
+  .confirm-btn-primary:hover{background:var(--accent-light);transform:translateY(-1px);}
+  .confirm-btn-secondary{background:var(--card-bg);border:0.5px solid var(--card-border);color:var(--muted);border-radius:10px;padding:12px 22px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:all .2s;}
+  .confirm-btn-secondary:hover{border-color:rgba(255,255,255,0.3);color:var(--white);}
+
+  /* PASSENGER DETAILS */
+  .details-wrap{padding:28px;max-width:920px;margin:0 auto;}
+  .details-head{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;}
+  .details-head h2{font-family:'Playfair Display',serif;font-size:24px;margin-right:auto;}
+  .details-head p{width:100%;color:var(--muted);font-size:13px;}
+  .details-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(280px,.75fr);gap:18px;align-items:start;}
+  .details-card{background:var(--card-bg);border:0.5px solid var(--card-border);border-radius:var(--radius);padding:22px;}
+  .details-form{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .details-field{display:flex;flex-direction:column;gap:6px;}
+  .details-field.full{grid-column:1/-1;}
+  .details-field label{font-size:11px;color:var(--accent);letter-spacing:1px;text-transform:uppercase;font-weight:500;}
+  .details-field input,.details-field textarea{background:rgba(255,255,255,0.07);border:0.5px solid var(--card-border);border-radius:10px;padding:12px;color:var(--white);font-family:'DM Sans',sans-serif;font-size:13px;transition:border-color .2s,box-shadow .2s;}
+  .details-field input:focus,.details-field textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,0.18);}
+  .details-field input::placeholder,.details-field textarea::placeholder{color:rgba(255,255,255,0.3);}
+  .details-submit{grid-column:1/-1;background:var(--accent);color:var(--sky);border:none;border-radius:10px;padding:12px 22px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:background .2s,transform .2s;}
+  .details-submit:hover{background:var(--accent-light);transform:translateY(-1px);}
+  .detail-summary-title{font-size:11px;color:var(--accent);letter-spacing:1.5px;text-transform:uppercase;font-weight:500;margin-bottom:12px;}
+  .detail-summary-row{display:flex;justify-content:space-between;gap:14px;font-size:13px;padding:10px 0;border-bottom:0.5px solid var(--card-border);}
+  .detail-summary-row:last-child{border-bottom:none;}
+  .detail-summary-row .label{color:var(--muted);}
+  .detail-summary-row .value{text-align:right;color:var(--white);font-weight:500;}
+  .detail-summary-total{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:14px;border-top:0.5px solid rgba(232,184,109,0.4);font-size:16px;font-weight:500;}
+  .detail-summary-total .value{color:var(--accent);font-size:22px;}
+
+  /* PROFILE */
+  .profile-wrap{padding:28px;max-width:560px;margin:0 auto;}
+  .profile-hdr{display:flex;align-items:center;gap:16px;margin-bottom:24px;}
+  .avatar{width:56px;height:56px;border-radius:50%;background:rgba(232,184,109,0.2);border:1px solid var(--accent);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:20px;color:var(--accent);}
+  .profile-hdr h2{font-family:'Playfair Display',serif;font-size:20px;margin-bottom:2px;}
+  .profile-hdr p{font-size:12px;color:var(--muted);}
+  .gold-card{background:linear-gradient(135deg,rgba(232,184,109,0.2),rgba(232,184,109,0.08));border:0.5px solid var(--accent);border-radius:var(--radius);padding:18px 20px;margin-bottom:20px;}
+  .gc-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+  .gc-tier{font-size:11px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;font-weight:500;}
+  .gc-pts{font-family:'Playfair Display',serif;font-size:26px;color:var(--accent);}
+  .gc-sub{font-size:11px;color:var(--muted);}
+  .pts-bar-bg{height:4px;background:rgba(255,255,255,0.1);border-radius:2px;margin-top:8px;}
+  .pts-bar{height:4px;background:var(--accent);border-radius:2px;transition:width .6s ease;}
+  .pts-label{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:4px;}
+  .profile-sec{margin-bottom:20px;}
+  .profile-sec h4{font-size:11px;color:var(--accent);letter-spacing:1.5px;text-transform:uppercase;font-weight:500;margin-bottom:12px;}
+  .pf-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:0.5px solid var(--card-border);font-size:13px;}
+  .pf-row:last-child{border-bottom:none;}
+  .pf-label{color:var(--muted);font-size:12px;}
+
+  /* MODAL */
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:none;align-items:center;justify-content:center;}
+  .modal-bg.open{display:flex;}
+  .modal{background:#0d1f3c;border:0.5px solid var(--card-border);border-radius:18px;padding:28px;max-width:420px;width:90%;animation:fu .3s ease;}
+  .modal h3{font-family:'Playfair Display',serif;font-size:20px;margin-bottom:16px;}
+  .modal-row{display:flex;justify-content:space-between;font-size:13px;padding:8px 0;border-bottom:0.5px solid var(--card-border);}
+  .modal-row:last-of-type{border-bottom:none;}
+  .modal-row .ml{color:var(--muted);}
+  .modal-total{display:flex;justify-content:space-between;font-size:16px;font-weight:500;padding-top:14px;margin-top:6px;border-top:0.5px solid rgba(232,184,109,0.4);}
+  .modal-total .mr{color:var(--accent);}
+  .modal-btns{display:flex;gap:10px;margin-top:20px;}
+  .confirm-btn{flex:1;background:var(--accent);color:var(--sky);border:none;border-radius:10px;padding:12px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;}
+  .confirm-btn:hover{background:var(--accent-light);}
+  .cancel-btn{flex:1;background:none;border:0.5px solid var(--card-border);color:var(--muted);border-radius:10px;padding:12px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;}
+  @media(max-width:760px){
+    nav{align-items:flex-start;gap:14px;flex-direction:column;}
+    .nav-links{width:100%;overflow-x:auto;padding-bottom:4px;}
+    .sc-row,.sc-bot,.details-grid,.details-form{grid-template-columns:1fr;}
+    .swap{justify-self:center;transform:rotate(90deg);}
+    .fc{grid-template-columns:1fr;align-items:start;}
+    .ai{text-align:left;}
+    .ifs-grid{grid-template-columns:1fr;}
+    .bk-det,.bk-actions,.seat-legend{flex-wrap:wrap;}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <nav>
+    <div class="logo">Fly<span>Dream</span>Air</div>
+    <div class="nav-links">
+      <button class="nav-btn active" onclick="nav('book')">Book</button>
+      <button class="nav-btn" onclick="nav('mybookings')">My Bookings</button>
+      <button class="nav-btn" onclick="nav('seats')">Seat Selection</button>
+      <button class="nav-btn" onclick="nav('services')">In-flight Services</button>
+      <button class="nav-btn" onclick="nav('profile')">Profile</button>
+    </div>
+  </nav>
+
+  <!-- BOOK PAGE -->
+  <div class="page active" id="p-book">
+    <div class="hero">
+      <canvas class="stars-bg" id="starCanvas" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;"></canvas>
+      <div class="h-inner">
+        <div class="tag">✦ FlyDreamAir ✦</div>
+        <h1>Book Your Next<br><em>Adventure</em></h1>
+        <p>Search flights, manage reservations, select seats, and order in-flight meals and services — all in one place.</p>
+        <div class="sc">
+          <div class="sc-tabs">
+            <button class="sc-tab active" id="t-rt" onclick="tripType('rt')">Round trip</button>
+            <button class="sc-tab" id="t-ow" onclick="tripType('ow')">One way</button>
+            <button class="sc-tab" id="t-mc" onclick="tripType('mc')">Multi-city</button>
+          </div>
+          <div class="sc-row">
+            <div class="sf">
+              <label>From</label>
+              <select id="s-from">
+                <option value="SYD">Sydney (SYD)</option>
+                <option value="MEL">Melbourne (MEL)</option>
+                <option value="BNE">Brisbane (BNE)</option>
+                <option value="PER">Perth (PER)</option>
+                <option value="ADL">Adelaide (ADL)</option>
+                <option value="CBR">Canberra (CBR)</option>
+                <option value="SIN">Singapore (SIN)</option>
+                <option value="NRT">Tokyo Narita (NRT)</option>
+                <option value="LHR">London Heathrow (LHR)</option>
+                <option value="LAX">Los Angeles (LAX)</option>
+                <option value="DXB">Dubai (DXB)</option>
+              </select>
+            </div>
+            <button class="swap" onclick="swp()">⇄</button>
+            <div class="sf">
+              <label>To</label>
+              <select id="s-to">
+                <option value="BNE">Brisbane (BNE)</option>
+                <option value="SYD">Sydney (SYD)</option>
+                <option value="MEL">Melbourne (MEL)</option>
+                <option value="PER">Perth (PER)</option>
+                <option value="ADL">Adelaide (ADL)</option>
+                <option value="CBR">Canberra (CBR)</option>
+                <option value="SIN">Singapore (SIN)</option>
+                <option value="NRT">Tokyo Narita (NRT)</option>
+                <option value="LHR">London Heathrow (LHR)</option>
+                <option value="LAX">Los Angeles (LAX)</option>
+                <option value="DXB">Dubai (DXB)</option>
+              </select>
+            </div>
+          </div>
+          <div class="sc-bot">
+            <div class="sf">
+              <label>Depart</label>
+              <input type="date" id="d-dep" />
+            </div>
+            <div class="sf" id="ret-f">
+              <label>Return</label>
+              <input type="date" id="d-ret" />
+            </div>
+            <div class="sf">
+              <label>Passengers</label>
+              <select id="s-pax">
+                <option>1 Adult</option><option>2 Adults</option><option>3 Adults</option>
+                <option>2 Adults, 1 Child</option><option>2 Adults, 2 Children</option>
+              </select>
+            </div>
+            <button class="srch-btn" onclick="doSearch()">Search →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTS PAGE -->
+  <div class="page" id="p-results">
+    <div class="res-hdr">
+      <h2>Available Flights</h2>
+      <div class="rtag" id="rl"></div>
+      <span style="font-size:12px;color:var(--muted);" id="dl"></span>
+      <button class="back-btn" onclick="nav('book')">← New search</button>
+    </div>
+    <div style="padding:0 28px 10px;display:flex;gap:10px;flex-wrap:wrap;" id="filter-row"></div>
+    <div class="fl-list" id="fl-list"></div>
+  </div>
+
+  <!-- PASSENGER DETAILS -->
+  <div class="page" id="p-details">
+    <div class="details-wrap">
+      <div class="details-head">
+        <h2>Passenger Details</h2>
+        <button class="back-btn" onclick="nav('results')">← Back to results</button>
+        <p>Enter your details to finish booking this flight.</p>
+      </div>
+      <div class="details-grid">
+        <div class="details-card">
+          <form class="details-form" id="passenger-form" onsubmit="submitBookingDetails(event)">
+            <div class="details-field">
+              <label for="passenger-first">First name</label>
+              <input id="passenger-first" type="text" autocomplete="given-name" required>
+            </div>
+            <div class="details-field">
+              <label for="passenger-last">Last name</label>
+              <input id="passenger-last" type="text" autocomplete="family-name" required>
+            </div>
+            <div class="details-field">
+              <label for="passenger-email">Email</label>
+              <input id="passenger-email" type="email" autocomplete="email" required>
+            </div>
+            <div class="details-field">
+              <label for="passenger-phone">Phone</label>
+              <input id="passenger-phone" type="tel" autocomplete="tel" required>
+            </div>
+            <div class="details-field">
+              <label for="passenger-dob">Date of birth</label>
+              <input id="passenger-dob" type="date" required>
+            </div>
+            <div class="details-field">
+              <label for="passenger-passport">Passport number</label>
+              <input id="passenger-passport" type="text" autocomplete="off" >>
+            </div>
+            <div class="details-field full">
+              <label for="passenger-notes">Special requests</label>
+              <textarea id="passenger-notes" rows="3" placeholder="Optional"></textarea>
+            </div>
+            <button class="details-submit" type="submit">Book flight →</button>
+          </form>
+        </div>
+        <div class="details-card" id="details-summary"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOOKING CONFIRMATION -->
+  <div class="page" id="p-confirmation">
+    <div class="confirm-wrap">
+      <div class="confirm-icon">✓</div>
+      <h2>Flight Booked</h2>
+      <p>Your booking is confirmed. Go to My Bookings to look at your flights.</p>
+      <div class="confirm-ref">
+        <div class="ref-label">Booking reference</div>
+        <div class="ref-number" id="confirmed-ref"></div>
+      </div>
+      <div class="confirm-details" id="confirmed-details"></div>
+      <div class="confirm-actions">
+        <button class="confirm-btn-primary" onclick="nav('mybookings')">Go to My Bookings →</button>
+        <button class="confirm-btn-secondary" onclick="nav('book')">Book another flight</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MY BOOKINGS -->
+  <div class="page" id="p-mybookings">
+    <div class="mb-wrap">
+      <h2>My Bookings</h2>
+      <p>Manage your upcoming and past flights</p>
+      <div id="bookings-list"></div>
+    </div>
+  </div>
+
+  <!-- SEAT SELECTION -->
+  <div class="page" id="p-seats">
+    <div class="seat-wrap">
+      <h2>Select Your Seat</h2>
+      <p>Flight FDA 201 · Sydney → Brisbane · Row 1–5 Business, 6–30 Economy</p>
+      <div class="seat-legend">
+        <span><span class="leg-dot" style="background:rgba(255,255,255,0.1);"></span>Available</span>
+        <span><span class="leg-dot" style="background:rgba(255,255,255,0.04);"></span>Taken</span>
+        <span><span class="leg-dot" style="background:var(--accent);"></span>Your selection</span>
+        <span><span class="leg-dot" style="background:rgba(93,202,165,0.3);"></span>Extra legroom</span>
+      </div>
+      <div id="seat-map"></div>
+      <div class="seat-info" id="seat-info">No seat selected. Click a seat to choose.</div>
+      <button onclick="confirmSeat()" style="margin-top:14px;width:100%;background:var(--accent);color:var(--sky);border:none;border-radius:10px;padding:12px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;">Confirm seat selection →</button>
+    </div>
+  </div>
+
+  <!-- IN-FLIGHT SERVICES -->
+  <div class="page" id="p-services">
+    <div class="ifs-wrap">
+      <h2>In-flight Services</h2>
+      <p>Pre-order meals, drinks, other products</p>
+      <div class="ifs-cats">
+        <button class="ifs-cat active" onclick="filterIFS('all',this)">All</button>
+        <button class="ifs-cat" onclick="filterIFS('meal',this)">Meals</button>
+        <button class="ifs-cat" onclick="filterIFS('drink',this)">Drinks</button>
+        <button class="ifs-cat" onclick="filterIFS('extra',this)">Extras</button>
+        <button class="ifs-cat" onclick="filterIFS('comfort',this)">Comfort</button>
+      </div>
+      <div class="ifs-grid" id="ifs-grid"></div>
+      <div id="ifs-cart"></div>
+    </div>
+  </div>
+
+  <!-- PROFILE -->
+  <div class="page" id="p-profile">
+    <div class="profile-wrap">
+      <div class="profile-hdr">
+        <div class="avatar">JK</div>
+        <div>
+          <h2>John Keating </h2>
+          <p>Gold Member · Member since 2021</p>
+        </div>
+      </div>
+      <div class="gold-card">
+        <div class="gc-top">
+          <div>
+            <div class="gc-tier">🥇 Gold Member</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px;">DreamPoints Balance</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="gc-pts">42,350</div>
+            <div class="gc-sub">points</div>
+          </div>
+        </div>
+        <div class="pts-bar-bg"><div class="pts-bar" id="pts-bar"></div></div>
+        <div class="pts-label"><span>Gold (25,000)</span><span>32,650 pts to Platinum</span></div>
+      </div>
+      <div class="profile-sec">
+        <h4>Personal details</h4>
+        <div class="pf-row"><div class="pf-label">Full name</div><div>John Keating</div></div>
+        <div class="pf-row"><div class="pf-label">Email</div><div>john.keating9@yahoo.com</div></div>
+        <div class="pf-row"><div class="pf-label">Phone</div><div>+61 404 783 458</div></div>
+        <div class="pf-row"><div class="pf-label">Passport</div><div>PA1234567 · Expires March 2028</div></div>
+        <div class="pf-row"><div class="pf-label">Nationality</div><div>Australian</div></div>
+      </div>
+      <div class="profile-sec">
+        <h4>Preferences</h4>
+        <div class="pf-row"><div class="pf-label">Meal preference</div><div>Chicken and Rice</div></div>
+        <div class="pf-row"><div class="pf-label">Seat preference</div><div>Window</div></div>
+        <div class="pf-row"><div class="pf-label">Newsletter</div><div style="color:#5dcaa5;">Subscribed</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHECKOUT MODAL -->
+  <div class="modal-bg" id="checkout-modal">
+    <div class="modal">
+      <h3>Confirm Booking</h3>
+      <div id="modal-content"></div>
+      <div class="modal-btns">
+        <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+        <button class="confirm-btn" onclick="bookingConfirmed()">Confirm & Pay →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const FLIGHTS = {
+  'SYD-BNE':[
+    {code:'FDA 201',dep:'06:00',arr:'07:25',dur:'1h 25m',stops:'Non-stop',price:129,cls:'E',aircraft:'A320'},
+    {code:'FDA 215',dep:'09:45',arr:'11:10',dur:'1h 25m',stops:'Non-stop',price:159,cls:'E',aircraft:'B737'},
+    {code:'FDA 231',dep:'13:00',arr:'14:30',dur:'1h 30m',stops:'Non-stop',price:249,cls:'B',aircraft:'A330'},
+    {code:'FDA 247',dep:'17:00',arr:'18:30',dur:'1h 30m',stops:'Non-stop',price:139,cls:'E',aircraft:'A320'},
+    {code:'FDA 259',dep:'20:30',arr:'22:00',dur:'1h 30m',stops:'Non-stop',price:299,cls:'F',aircraft:'B787'},
+  ],
+  'BNE-SYD':[
+    {code:'FDA 202',dep:'07:50',arr:'09:20',dur:'1h 30m',stops:'Non-stop',price:119,cls:'E',aircraft:'A320'},
+    {code:'FDA 220',dep:'12:15',arr:'13:45',dur:'1h 30m',stops:'Non-stop',price:149,cls:'E',aircraft:'B737'},
+    {code:'FDA 238',dep:'16:40',arr:'18:10',dur:'1h 30m',stops:'Non-stop',price:229,cls:'B',aircraft:'A330'},
+  ],
+  'SYD-MEL':[
+    {code:'FDA 101',dep:'07:00',arr:'08:25',dur:'1h 25m',stops:'Non-stop',price:109,cls:'E',aircraft:'A320'},
+    {code:'FDA 115',dep:'11:30',arr:'12:55',dur:'1h 25m',stops:'Non-stop',price:135,cls:'E',aircraft:'B737'},
+    {code:'FDA 129',dep:'15:45',arr:'17:10',dur:'1h 25m',stops:'Non-stop',price:219,cls:'B',aircraft:'A330'},
+    {code:'FDA 143',dep:'19:00',arr:'20:25',dur:'1h 25m',stops:'Non-stop',price:119,cls:'E',aircraft:'A320'},
+  ],
+  'MEL-SYD':[
+    {code:'FDA 102',dep:'08:45',arr:'10:10',dur:'1h 25m',stops:'Non-stop',price:105,cls:'E',aircraft:'A320'},
+    {code:'FDA 118',dep:'13:00',arr:'14:25',dur:'1h 25m',stops:'Non-stop',price:129,cls:'E',aircraft:'B737'},
+    {code:'FDA 136',dep:'18:00',arr:'19:25',dur:'1h 25m',stops:'Non-stop',price:209,cls:'B',aircraft:'A330'},
+  ],
+  'SYD-PER':[
+    {code:'FDA 301',dep:'08:00',arr:'12:30',dur:'4h 30m',stops:'Non-stop',price:299,cls:'E',aircraft:'B787'},
+    {code:'FDA 315',dep:'14:00',arr:'18:30',dur:'4h 30m',stops:'Non-stop',price:349,cls:'E',aircraft:'B787'},
+    {code:'FDA 329',dep:'21:00',arr:'01:30+1',dur:'4h 30m',stops:'Non-stop',price:549,cls:'B',aircraft:'A350'},
+  ],
+  'SYD-SIN':[
+    {code:'FDA 501',dep:'07:30',arr:'13:40',dur:'8h 10m',stops:'Non-stop',price:699,cls:'E',aircraft:'A350'},
+    {code:'FDA 511',dep:'22:00',arr:'05:10+1',dur:'8h 10m',stops:'Non-stop',price:1299,cls:'B',aircraft:'B787'},
+  ],
+  'SYD-NRT':[
+    {code:'FDA 601',dep:'09:00',arr:'18:30',dur:'9h 30m',stops:'Non-stop',price:999,cls:'E',aircraft:'B787'},
+    {code:'FDA 611',dep:'23:00',arr:'08:30+1',dur:'9h 30m',stops:'Non-stop',price:1899,cls:'B',aircraft:'B787'},
+  ],
+  'SYD-LHR':[
+    {code:'FDA 701',dep:'10:00',arr:'17:30+1',dur:'22h 30m',stops:'1 stop (SIN)',price:1599,cls:'E',aircraft:'B787'},
+    {code:'FDA 711',dep:'21:00',arr:'05:30+2',dur:'21h 30m',stops:'Non-stop',price:3299,cls:'B',aircraft:'A320 XLR'},
+  ],
+  'MEL-BNE':[
+    {code:'FDA 401',dep:'07:00',arr:'08:50',dur:'1h 50m',stops:'Non-stop',price:145,cls:'E',aircraft:'A320'},
+    {code:'FDA 415',dep:'14:00',arr:'15:50',dur:'1h 50m',stops:'Non-stop',price:175,cls:'E',aircraft:'B737'},
+  ],
+  'SYD-ADL':[
+    {code:'FDA 351',dep:'08:30',arr:'10:30',dur:'2h 00m',stops:'Non-stop',price:179,cls:'E',aircraft:'A320'},
+    {code:'FDA 367',dep:'16:00',arr:'18:00',dur:'2h 00m',stops:'Non-stop',price:215,cls:'E',aircraft:'B737'},
+  ],
+  'SYD-LAX':[
+    {code:'FDA 801',dep:'11:00',arr:'06:30',dur:'13h 30m',stops:'Non-stop',price:1299,cls:'E',aircraft:'A321XLR'},
+    {code:'FDA 811',dep:'22:30',arr:'18:00',dur:'13h 30m',stops:'Non-stop',price:2499,cls:'B',aircraft:'A350'},
+  ],
+  'SYD-DXB':[
+    {code:'FDA 901',dep:'09:00',arr:'21:00',dur:'14h 00m',stops:'Non-stop',price:1099,cls:'E',aircraft:'A321'},
+    {code:'FDA 911',dep:'23:00',arr:'11:00+1',dur:'14h 00m',stops:'Non-stop',price:2199,cls:'B',aircraft:'A350'},
+  ],
+};
+const cls_name={E:'Economy',B:'Business',F:'First'};
+
+let selectedFlight=null, selectedSeat=null, cart=[], lastBooking=null;
+let bookings=[
+  {ref:'FDA-28104',from:'SYD',to:'BNE',fromCity:'Sydney',toCity:'Brisbane',date:'Fri, 2 May 2026',time:'06:00',code:'FDA 201',cls:'Economy',status:'checkin',price:129},
+  {ref:'FDA-19553',from:'MEL',to:'SYD',fromCity:'Melbourne',toCity:'Sydney',date:'Mon, 12 May 2026',time:'13:00',code:'FDA 136',cls:'Business',status:'confirmed',price:209},
+  {ref:'FDA-09821',from:'SYD',to:'PER',fromCity:'Sydney',toCity:'Perth',date:'Sat, 3 Jan 2026',time:'08:00',code:'FDA 301',cls:'Economy',status:'completed',price:299},
+];
+
+const IFS_ITEMS=[
+  {id:1,cat:'meal',icon:'🥪',name:'Ham and Cheese Tostie',desc:'White Bread, Ham, Cheese, Butter',price:10},
+  {id:2,cat:'meal',icon:'🍪',name:'Cholcate Chip Cookie',desc:'Cholcate Chips baked',price:8},
+  {id:3,cat:'meal',icon:'🍝',name:'Beef Lasanga',desc:'beef with layered pastry',price:21},
+  {id:4,cat:'meal',icon:'🥞',name:'Breakfast Set',desc:'Scrambled eggs, bacon, toast, orange or apple juice',price:20},
+  {id:5,cat:'drink',icon:'🥤',name:'Softdrink',desc:'Coke Cola, Coke No suger, Fanta, Sprite, Solo',price:12},
+  {id:6,cat:'drink',icon:'🍸',name:'Gin & Tonic',desc:'Premium gin, tonic water, lime, ice',price:14},
+  {id:7,cat:'drink',icon:'☕️',name:'Premium Coffee',desc:'Single-origin espresso with your choice of milk',price:6},
+  {id:8,cat:'drink',icon:'🧃',name:'Hot Cholcate',desc:'Choloacte, Milk',price:7},
+  {id:9,cat:'extra',icon:'🎧',name:'Headphones',desc:'Borrow ANC headphones for your flight',price:15},
+  {id:10,cat:'extra',icon:'🧳',name:'Add Second Bag 30kg',desc:'Add an extra bag up to 30kg',price:89},
+  {id:11,cat:'comfort',icon:'🛏️',name:'Comfort Kit',desc:'Pillow, blanket, eye mask & ear plugs',price:12},
+  {id:12,cat:'comfort',icon:'💆',name:'Spa Amenity Kit',desc:'Moisturiser, lip balm & refresher wipes',price:8},
+];
+
+function nav(id){
+  const nextPage=document.getElementById('p-'+id);
+  if(!nextPage) return;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  nextPage.classList.add('active');
+  const idx={book:0,mybookings:1,seats:2,services:3,profile:4};
+  if(idx[id]!==undefined) document.querySelectorAll('.nav-btn')[idx[id]].classList.add('active');
+  if(id==='mybookings') renderBookings();
+  if(id==='seats') renderSeats();
+  if(id==='services') renderIFS('all');
+  if(id==='profile'){setTimeout(()=>{document.getElementById('pts-bar').style.width='56%';},200);}
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function tripType(t){
+  ['rt','ow','mc'].forEach(x=>document.getElementById('t-'+x).classList.remove('active'));
+  document.getElementById('t-'+t).classList.add('active');
+  document.getElementById('ret-f').style.display=t==='ow'?'none':'';
+}
+
+function swp(){
+  const f=document.getElementById('s-from'),t=document.getElementById('s-to');
+  const v=f.value; f.value=t.value; t.value=v;
+}
+
+function doSearch(){
+  const f=document.getElementById('s-from').value;
+  const t=document.getElementById('s-to').value;
+  if(f===t){alert('Please select different airports.');return;}
+  const dep=document.getElementById('d-dep').value;
+  const fTxt=document.getElementById('s-from').options[document.getElementById('s-from').selectedIndex].text;
+  const tTxt=document.getElementById('s-to').options[document.getElementById('s-to').selectedIndex].text;
+  const fC=fTxt.match(/\((\w+)\)/)[1],tC=tTxt.match(/\((\w+)\)/)[1];
+  document.getElementById('rl').textContent=fC+' → '+tC;
+  document.getElementById('dl').textContent=dep?new Date(dep+'T12:00:00').toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'long'}):'';
+  const flights=FLIGHTS[f+'-'+t]||null;
+  const list=document.getElementById('fl-list');
+  if(!flights){
+    document.getElementById('filter-row').innerHTML='';
+    list.innerHTML='<div style="text-align:center;padding:52px;color:var(--muted);"><div style="font-size:36px;margin-bottom:14px;">✈</div><div style="font-size:15px;">No direct flights available for this route.</div><div style="font-size:12px;margin-top:8px;">Try Sydney ↔ Brisbane, Melbourne, Perth, Singapore or Tokyo.</div></div>';
+  } else {
+    const frs=document.getElementById('filter-row');
+    frs.innerHTML='<span style="font-size:12px;color:var(--muted);align-self:center;">'+flights.length+' flights found</span>'
+      +'<button onclick="sortFlights(\'price\',\''+f+'-'+t+'\')" style="font-family:\'DM Sans\',sans-serif;background:var(--card-bg);border:0.5px solid var(--card-border);color:var(--muted);font-size:11px;padding:5px 12px;border-radius:10px;cursor:pointer;">Sort by price</button>'
+      +'<button onclick="sortFlights(\'dep\',\''+f+'-'+t+'\')" style="font-family:\'DM Sans\',sans-serif;background:var(--card-bg);border:0.5px solid var(--card-border);color:var(--muted);font-size:11px;padding:5px 12px;border-radius:10px;cursor:pointer;">Sort by departure</button>';
+    renderFlights(flights,f,t);
+  }
+  nav('results');
+}
+
+let curFlights=[], curKey='';
+function renderFlights(flights,f,t){
+  curFlights=flights; curKey=f+'-'+t;
+  const best=flights.reduce((a,b)=>a.price<b.price?a:b);
+  document.getElementById('fl-list').innerHTML=flights.map((fl,i)=>`
+    <div class="fc ${fl===best?'bv':''}" onclick="startBookingDetails(${i},'${f}','${t}')">
+      <div>
+        ${fl===best?'<div class="bb">Best value</div>':''}
+        <div class="t">${fl.dep}</div><div class="ap">${getCity(f)} (${f})</div>
+      </div>
+      <div class="fm">
+        <div class="dur">${fl.dur}</div>
+        <div class="fline"></div>
+        <div class="stl">${fl.stops}</div>
+      </div>
+      <div>
+        <div class="t">${fl.arr}</div><div class="ap">${getCity(t)} (${t})</div>
+      </div>
+      <div class="ai">
+        <div class="fn">${fl.code}</div>
+        <span class="cls-badge cls-${fl.cls}">${cls_name[fl.cls]}</span>
+        <div style="font-size:10px;color:var(--muted);margin-top:3px;">${fl.aircraft}</div>
+      </div>
+      <div>
+        <div class="pr">$${fl.price}</div><div class="prs">per person</div>
+      </div>
+      <button class="sel-btn" onclick="event.stopPropagation();startBookingDetails(${i},'${f}','${t}')">Select →</button>
+    </div>
+  `).join('');
+}
+
+function sortFlights(by,key){
+  const [f,t]=key.split('-');
+  const sorted=[...curFlights].sort((a,b)=>by==='price'?a.price-b.price:a.dep.localeCompare(b.dep));
+  renderFlights(sorted,f,t);
+}
+
+function getCity(code){
+  const m={SYD:'Sydney',MEL:'Melbourne',BNE:'Brisbane',PER:'Perth',ADL:'Adelaide',CBR:'Canberra',SIN:'Singapore',NRT:'Tokyo',LHR:'London',LAX:'Los Angeles',DXB:'Dubai'};
+  return m[code]||code;
+}
+
+function openCheckout(idx,f,t){
+  startBookingDetails(idx,f,t);
+}
+
+function startBookingDetails(idx,f,t){
+  const fl=curFlights[idx];
+  if(!fl) return;
+  const dateValue=document.getElementById('d-dep').value;
+  selectedFlight={...fl,from:f,to:t,dateValue,date:formatTravelDate(dateValue)};
+  const form=document.getElementById('passenger-form');
+  if(form) form.reset();
+  renderDetailsSummary();
+  nav('details');
+}
+
+function formatTravelDate(dateValue){
+  if(!dateValue) return 'Date not selected';
+  return new Date(dateValue+'T12:00:00').toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+}
+
+function cleanText(value){
+  return String(value || '').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+
+function renderDetailsSummary(){
+  if(!selectedFlight) return;
+  document.getElementById('details-summary').innerHTML=`
+    <div class="detail-summary-title">Booking summary</div>
+    <div class="detail-summary-row"><div class="label">Route</div><div class="value">${getCity(selectedFlight.from)} (${selectedFlight.from}) → ${getCity(selectedFlight.to)} (${selectedFlight.to})</div></div>
+    <div class="detail-summary-row"><div class="label">Flight</div><div class="value">${selectedFlight.code}</div></div>
+    <div class="detail-summary-row"><div class="label">Date</div><div class="value">${selectedFlight.date}</div></div>
+    <div class="detail-summary-row"><div class="label">Time</div><div class="value">${selectedFlight.dep} - ${selectedFlight.arr}</div></div>
+    <div class="detail-summary-row"><div class="label">Class</div><div class="value">${cls_name[selectedFlight.cls]}</div></div>
+    <div class="detail-summary-row"><div class="label">Aircraft</div><div class="value">${selectedFlight.aircraft}</div></div>
+    <div class="detail-summary-total"><div>Total</div><div class="value">$${selectedFlight.price}</div></div>
+  `;
+}
+
+function submitBookingDetails(e){
+  e.preventDefault();
+  if(!selectedFlight){
+    nav('book');
+    return;
+  }
+  const passenger={
+    firstName:cleanText(document.getElementById('passenger-first').value),
+    lastName:cleanText(document.getElementById('passenger-last').value),
+    email:cleanText(document.getElementById('passenger-email').value),
+    phone:cleanText(document.getElementById('passenger-phone').value),
+    dob:cleanText(document.getElementById('passenger-dob').value),
+    passport:cleanText(document.getElementById('passenger-passport').value),
+    notes:cleanText(document.getElementById('passenger-notes').value)
+  };
+  const ref='FDA-'+Math.floor(10000+Math.random()*89999);
+  lastBooking={
+    ref,
+    from:selectedFlight.from,
+    to:selectedFlight.to,
+    fromCity:getCity(selectedFlight.from),
+    toCity:getCity(selectedFlight.to),
+    date:selectedFlight.date,
+    time:selectedFlight.dep,
+    code:selectedFlight.code,
+    cls:cls_name[selectedFlight.cls],
+    status:'confirmed',
+    price:selectedFlight.price,
+    passenger:passenger.firstName+' '+passenger.lastName,
+    email:passenger.email,
+    phone:passenger.phone,
+    passport:passenger.passport,
+    notes:passenger.notes
+  };
+  bookings.unshift(lastBooking);
+  renderConfirmation();
+  nav('confirmation');
+}
+
+function renderConfirmation(){
+  if(!lastBooking) return;
+  document.getElementById('confirmed-ref').textContent=lastBooking.ref;
+  document.getElementById('confirmed-details').innerHTML=`
+    <div class="confirm-row"><span class="label">Passenger</span><span class="value">${lastBooking.passenger}</span></div>
+    <div class="confirm-row"><span class="label">Route</span><span class="value">${lastBooking.fromCity} to ${lastBooking.toCity}</span></div>
+    <div class="confirm-row"><span class="label">Flight</span><span class="value">${lastBooking.code}</span></div>
+    <div class="confirm-row"><span class="label">Date</span><span class="value">${lastBooking.date}</span></div>
+    <div class="confirm-row"><span class="label">Departure</span><span class="value">${lastBooking.time}</span></div>
+    <div class="confirm-row"><span class="label">Paid</span><span class="value">$${lastBooking.price}</span></div>
+  `;
+}
+function closeModal(){document.getElementById('checkout-modal').classList.remove('open');}
+function bookingConfirmed(){
+  closeModal();
+  if(!selectedFlight) return;
+  const ref='FDA-'+Math.floor(10000+Math.random()*89999);
+  lastBooking={ref,from:selectedFlight.from,to:selectedFlight.to,fromCity:getCity(selectedFlight.from),toCity:getCity(selectedFlight.to),date:selectedFlight.date || formatTravelDate(selectedFlight.dateValue),time:selectedFlight.dep,code:selectedFlight.code,cls:cls_name[selectedFlight.cls],status:'confirmed',price:selectedFlight.price,passenger:'Guest passenger'};
+  bookings.unshift(lastBooking);
+  renderConfirmation();
+  nav('confirmation');
+}
+
+function renderBookings(){
+  const sl={confirmed:'st-confirmed',checkin:'st-checkin',completed:'st-completed'};
+  const sl2={confirmed:'Confirmed',checkin:'Check-in open',completed:'Completed'};
+  document.getElementById('bookings-list').innerHTML=bookings.map(b=>`
+    <div class="bk-card">
+      <div class="bk-top">
+        <div class="bk-num">REF: ${b.ref}</div>
+        <div class="bk-status ${sl[b.status]}">${sl2[b.status]}</div>
+      </div>
+      <div class="bk-route">
+        <div><div class="bk-city">${b.fromCity}</div><div class="bk-iata">${b.from}</div></div>
+        <div class="bk-arrow">→</div>
+        <div><div class="bk-city">${b.toCity}</div><div class="bk-iata">${b.to}</div></div>
+      </div>
+      <div class="bk-det">
+        ${b.passenger?`<span><div class="pf-label">Passenger</div><b>${b.passenger}</b></span>`:''}
+        <span><div class="pf-label">Date</div><b>${b.date}</b></span>
+        <span><div class="pf-label">Departure</div><b>${b.time}</b></span>
+        <span><div class="pf-label">Flight</div><b>${b.code}</b></span>
+        <span><div class="pf-label">Class</div><b>${b.cls}</b></span>
+        <span><div class="pf-label">Paid</div><b style="color:var(--accent);">$${b.price}</b></span>
+      </div>
+      ${b.status!=='completed'?`<div class="bk-actions">
+        <button class="bk-act-btn bk-primary" onclick="alert('Opening online check-in for ${b.ref}...')">Online check-in</button>
+        <button class="bk-act-btn bk-ghost" onclick="nav('seats')">Change seat</button>
+        <button class="bk-act-btn bk-ghost" onclick="nav('services')">Add services</button>
+        <button class="bk-act-btn bk-ghost" onclick="cancelBooking('${b.ref}')" style="color:#f09595;border-color:rgba(240,149,149,0.3);">Cancel</button>
+      </div>`:'<div class="bk-actions"><button class="bk-act-btn bk-ghost">Download receipt</button></div>'}
+    </div>
+  `).join('');
+}
+
+function cancelBooking(ref){
+  if(confirm('Cancel booking '+ref+'? This may incur cancellation fees.')){
+    bookings=bookings.filter(b=>b.ref!==ref);
+    renderBookings();
+  }
+}
+
+function renderSeats(){
+  const taken=['1A','2C','3B','4A','4C','5B','6D','7A','8B','8F','9C','10A','10E','11B','12F','13A','13D','14C','15B','16A','16F','17D','18B','19A','20C','21F','22B','23A','24D','25C'];
+  const legroom=['6A','6B','6C','6D','6E','6F','14A','14B','14C','14D','14E','14F'];
+  const cols=['A','B','C','','D','E','F'];
+  let html='';
+  html+='<div class="seat-section"><h4>Business class — Rows 1–5</h4>';
+  for(let r=1;r<=5;r++){
+    html+='<div class="seat-row"><div class="row-num">'+r+'</div>';
+    ['A','B','C','','D'].forEach(c=>{
+      if(!c){html+='<div class="aisle"></div>';return;}
+      const id=r+c,t=taken.includes(id);
+      html+=`<button class="seat ${t?'taken':'avail'}" id="s${id}" onclick="selSeat('${id}','${r}','${c}','Business')" ${t?'disabled':''}>${c}</button>`;
+    });
+    html+='</div>';
+  }
+  html+='</div><div class="seat-section"><h4>Economy class — Rows 6–30</h4>';
+  for(let r=6;r<=30;r++){
+    html+='<div class="seat-row"><div class="row-num">'+r+'</div>';
+    cols.forEach(c=>{
+      if(!c){html+='<div class="aisle"></div>';return;}
+      const id=r+c,t=taken.includes(id),lg=legroom.includes(id);
+      html+=`<button class="seat ${t?'taken':'avail'}" id="s${id}" onclick="selSeat('${id}','${r}','${c}','Economy')" ${t?'disabled':''} style="${lg&&!t?'background:rgba(93,202,165,0.2);':''}">${c}</button>`;
+    });
+    html+='</div>';
+  }
+  html+='</div>';
+  document.getElementById('seat-map').innerHTML=html;
+}
+
+function selSeat(id,row,col,cls){
+  if(selectedSeat){const prev=document.getElementById('s'+selectedSeat);if(prev){prev.classList.remove('selected');prev.style.background='';}}
+  selectedSeat=id;
+  const el=document.getElementById('s'+id);el.classList.add('selected');
+  const legr=['6','14'].includes(row);
+  document.getElementById('seat-info').innerHTML=`Selected: <span>Seat ${id}</span> · ${cls} · Row ${row} · ${col==='A'||col==='F'?'Window':col==='C'||col==='D'?'Aisle':'Middle'}${legr?' · Extra legroom':''}`;
+}
+
+function confirmSeat(){
+  if(!selectedSeat){alert('Please select a seat first.');return;}
+  alert('Seat '+selectedSeat+' confirmed for flight FDA 201!');
+}
+
+let ifsFilter='all';
+function filterIFS(cat,btn){
+  ifsFilter=cat;
+  document.querySelectorAll('.ifs-cat').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderIFS(cat);
+}
+function renderIFS(cat){
+  const items=cat==='all'?IFS_ITEMS:IFS_ITEMS.filter(i=>i.cat===cat);
+  document.getElementById('ifs-grid').innerHTML=items.map(item=>`
+    <div class="ifs-card">
+      <div class="ifs-icon">${item.icon}</div>
+      <h4>${item.name}</h4>
+      <p>${item.desc}</p>
+      <div class="ifs-price">$${item.price}</div>
+      <button class="add-btn" id="ifs-${item.id}" onclick="addToCart(${item.id})">${cart.find(c=>c.id===item.id)?'✓ Added':'Add to order'}</button>
+    </div>
+  `).join('');
+  renderCart();
+}
+function addToCart(id){
+  const item=IFS_ITEMS.find(i=>i.id===id);
+  if(cart.find(c=>c.id===id)){cart=cart.filter(c=>c.id!==id);}
+  else{cart.push(item);}
+  renderIFS(ifsFilter);
+}
+function renderCart(){
+  const el=document.getElementById('ifs-cart');
+  if(cart.length===0){el.innerHTML='';return;}
+  const total=cart.reduce((s,i)=>s+i.price,0);
+  el.innerHTML=`<div style="background:var(--card-bg);border:0.5px solid var(--card-border);border-radius:var(--radius);padding:18px 20px;margin-top:8px;">
+    <div style="font-size:12px;color:var(--accent);letter-spacing:1.5px;text-transform:uppercase;font-weight:500;margin-bottom:12px;">Your order (${cart.length} item${cart.length>1?'s':''})</div>
+    ${cart.map(i=>`<div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:0.5px solid var(--card-border);">${i.icon} ${i.name}<span style="color:var(--accent);">$${i.price}</span></div>`).join('')}
+    <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:500;padding-top:12px;margin-top:4px;"><span>Total</span><span style="color:var(--accent);">$${total}</span></div>
+    <button onclick="alert('In-flight order confirmed! Enjoy your flight.')" style="width:100%;margin-top:14px;background:var(--accent);color:var(--sky);border:none;border-radius:10px;padding:11px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;">Confirm order →</button>
+  </div>`;
+}
+
+// Set default dates
+const today=new Date();
+const d1=new Date(today); d1.setDate(d1.getDate()+7);
+const d2=new Date(today); d2.setDate(d2.getDate()+14);
+document.getElementById('d-dep').value=d1.toISOString().split('T')[0];
+document.getElementById('d-ret').value=d2.toISOString().split('T')[0];
+
+// Star canvas
+const cv=document.getElementById('starCanvas');
+const cx=cv.getContext('2d');
+function drawStars(){
+  cv.width=cv.offsetWidth||800; cv.height=cv.offsetHeight||200;
+  for(let i=0;i<80;i++){
+    cx.beginPath();
+    const r=Math.random()*1.5+0.3;
+    cx.arc(Math.random()*cv.width,Math.random()*cv.height,r,0,Math.PI*2);
+    cx.fillStyle=`rgba(255,255,255,${Math.random()*0.5+0.1})`;
+    cx.fill();
+  }
+}
+drawStars();
+</script>
+</body>
+</html>
